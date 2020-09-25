@@ -1,32 +1,26 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
-  </div>
+  <a-card class="app">
+    <DothingsHeader />
+    <div style="marginTop: 15px"></div>
+    <DothingsList />
+    <DithingsFooter />
+  </a-card>
 </template>
 
-<style lang="less">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+<script>
+import DothingsHeader from './components/DothingsHeader'
+import DothingsList from './components/DothingsList'
+import DithingsFooter from './components/DithingsFooter'
+export default {
+  components: { DothingsHeader, DothingsList, DithingsFooter }
 }
+</script>
 
-#nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
+<style lang="less" scoped>
+.app {
+  width: 800px;
+  height: 800px;
+  overflow: scroll;
+  margin: 0 auto;
 }
 </style>
