@@ -1,7 +1,8 @@
 <template>
   <div class="demo-infinite-container">
-    <a-list :data-source="data">
+    <a-list :data-source="dataView">
       <a-list-item slot="renderItem" slot-scope="item, index">
+        <!--列表显示区 -->
         <a-checkbox
           :checked="item.isDone"
           @change="() => toggelCheckbox(item.id)"
@@ -27,7 +28,9 @@
           修改
         </a-button>
         <!-- 删除 -->
-        <a-button type="danger" size="small" @click="delThings(item.id)">删除</a-button>
+        <a-button type="danger" size="small" @click="delThings(item.id)"
+          >删除</a-button
+        >
       </a-list-item>
       <!-- 弹出框区域 -->
       <a-modal
@@ -57,11 +60,7 @@
             <div><span class="listStyle">地点:</span>{{ item.pos }}</div>
             <br />
             <span class="listStyle">是否处理:</span>
-            <a-checkbox
-              :checked="item.isDone"
-              class="checkbox"
-            >
-            </a-checkbox>
+            <a-checkbox :checked="item.isDone" class="checkbox"> </a-checkbox>
           </a-list-item>
         </a-list>
         <a-list
@@ -128,15 +127,16 @@ import { mapState, mapMutations, mapActions } from 'vuex'
 export default {
   data() {
     return {
-      ModalText: 'Content of the modal',
+      ModalText: ' this is the content of ModalText',
       visible: false,
       confirmLoading: false,
       modalData: [],
-      type: ''
+      type: '',
+      handleData: []
     }
   },
   computed: {
-    ...mapState(['data', 'dataObj'])
+    ...mapState(['dataView', 'dataObj'])
   },
   beforeMount() {},
 
@@ -151,7 +151,7 @@ export default {
     ...mapActions([]),
     // 控制对话框的关闭
     showModal(id, type) {
-      this.modalData = this.data.filter(key => key.id === id)
+      this.modalData = this.dataView.filter(key => key.id === id)
       this.type = type
       if (type === 'modify') {
         this.modifyThings(id)
