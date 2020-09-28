@@ -12,14 +12,16 @@
             @change="
               e => inputContent({ value: e.target.value, type: 'title' })
             "
-            @blur="validate('title')"
+            @blur="validate({ type: 'title', switchAreaType: 'Header' })"
             style="width: 100%"
             placeholder="请输入你要做的事"
             :rows="4"
           />
         </a-input-group>
         <!-- 验正区域 -->
-        <Validate v-if="areaType === 'title'"></Validate>
+        <div v-show="switchAreaType === 'Header'">
+          <Validate v-if="areaType === 'title'"></Validate>
+        </div>
         <!-- 内容 -->
         <div class="space"></div>
         <a-icon type="pic-center" />内容
@@ -30,20 +32,22 @@
             @change="
               e => this.inputContent({ value: e.target.value, type: 'content' })
             "
-            @blur="validate('content')"
+           @blur="validate({ type: 'content', switchAreaType: 'Header' })"
             style="width: 100%"
             placeholder="请输入你要做的事"
             :rows="4"
           />
         </a-input-group>
         <div class="space"></div>
-        <Validate v-if="areaType === 'content'"></Validate>
+        <div v-show="switchAreaType === 'Header'">
+          <Validate v-if="areaType === 'content'"></Validate>
+        </div>
         <a-icon type="pic-center" />时间
         <div class="space"></div>
         <a-input-group compact>
           <a-textarea
             :value="dataObj.time"
-            @blur="validate('time')"
+            @blur="validate({ type: 'time', switchAreaType: 'Header' })"
             style="width: 100%"
             placeholder="请输入时间"
             :rows="1"
@@ -52,7 +56,9 @@
             "
           />
         </a-input-group>
-        <Validate v-if="areaType === 'time'"></Validate>
+        <div v-show="switchAreaType === 'Header'">
+          <Validate v-if="areaType === 'time'"></Validate>
+        </div>
         <div class="space"></div>
         <a-icon type="pic-center" />地点
         <div class="space"></div>
@@ -60,7 +66,7 @@
           <a-textarea
             :value="dataObj.pos"
             style="width: 100%"
-            @blur="validate('pos')"
+            @blur="validate({ type: 'pos', switchAreaType: 'Header' })"
             placeholder="请输入地点"
             :rows="1"
             @change="
@@ -68,9 +74,13 @@
             "
           />
         </a-input-group>
-        <Validate v-if="areaType === 'pos'"></Validate>
+        <div v-show="switchAreaType === 'Header'">
+          <Validate v-if="areaType === 'pos'"></Validate>
+        </div>
         <div class="btn">
-          <Validate v-if="areaType === 'add'"></Validate>
+          <div v-show="switchAreaType === 'Header'">
+            <Validate v-if="areaType === 'add'"></Validate>
+          </div>
           <a-button type="primary" @click="handleAddDoThings('add')"
             >添加待办事情</a-button
           >
@@ -90,12 +100,12 @@ export default {
   },
   components: { Validate },
   computed: {
-    ...mapState(['dataObj', 'data', 'areaType'])
+    ...mapState(['dataObj', 'data', 'areaType', 'switchAreaType'])
   },
   methods: {
     ...mapMutations(['inputContent', 'addDoThings', 'validate']),
     handleAddDoThings(type) {
-      this.validate(type)
+      this.validate({ type, switchAreaType: 'Header' })
       this.addDoThings(type)
     }
   }

@@ -5,7 +5,7 @@
         <!--列表显示区 -->
         <a-checkbox
           :checked="item.isDone"
-          @change="() => toggelCheckbox(item.id)"
+          @change="handleCheckbox(item.id)"
           class="checkbox"
         >
         </a-checkbox>
@@ -60,7 +60,8 @@
             <div><span class="listStyle">地点:</span>{{ item.pos }}</div>
             <br />
             <span class="listStyle">是否处理:</span>
-            <a-checkbox :checked="item.isDone" class="checkbox"> </a-checkbox>
+            <a-checkbox :checked="item.isDone" class="checkbox" disabled>
+            </a-checkbox>
           </a-list-item>
         </a-list>
         <a-list
@@ -78,43 +79,123 @@
               style="width: 100%"
               :rows="1"
               @change="
-                e => modifyThings({ value: e.target.value, type: 'title' })
+                e =>
+                  handleModify({
+                    value: e.target.value,
+                    type: 'title',
+                    id: item.id
+                  })
+              "
+              @blur="
+                e =>
+                  handleValidate({
+                    value: e.target.value,
+                    type: 'title',
+                    id: item.id
+                  })
               "
             />
+            <div v-show="switchAreaType === 'DothigsList'">
+              <Validate v-if="areaType === 'title'"></Validate>
+            </div>
             <span class="listStyle">内容:</span>
             <a-textarea
               :value="item.content"
               style="width: 100%"
               :rows="3"
               @change="
-                e => modifyThings({ value: e.target.value, type: 'title' })
+                e =>
+                  handleModify({
+                    value: e.target.value,
+                    type: 'content',
+                    id: item.id
+                  })
+              "
+              @blur="
+                e =>
+                  handleValidate({
+                    type: 'content',
+                    value: e.target.value,
+                    id: item.id
+                  })
               "
             />
+            <div v-show="switchAreaType === 'DothigsList'">
+              <Validate v-if="areaType === 'content'"></Validate>
+            </div>
             <span class="listStyle">时间:</span>
             <a-textarea
               :value="item.time"
               style="width: 100%"
               :rows="1"
               @change="
-                e => modifyThings({ value: e.target.value, type: 'time' })
+                e =>
+                  handleModify({
+                    value: e.target.value,
+                    type: 'time',
+                    id: item.id
+                  })
+              "
+              @blur="
+                e =>
+                  handleValidate({
+                    type: 'time',
+                    value: e.target.value,
+                    id: item.id
+                  })
               "
             />
+            <div v-show="switchAreaType === 'DothigsList'">
+              <Validate v-if="areaType === 'time'"></Validate>
+            </div>
             <span class="listStyle">地点:</span>
             <a-textarea
               :value="item.pos"
               style="width: 100%"
               :rows="1"
               @change="
-                e => modifyThings({ value: e.target.value, type: 'pos' })
+                e =>
+                  handleModify({
+                    value: e.target.value,
+                    type: 'pos',
+                    id: item.id
+                  })
+              "
+              @blur="
+                e =>
+                  handleValidate({
+                    type: 'pos',
+                    value: e.target.value,
+                    id: item.id
+                  })
               "
             />
-            <span class="listStyle">是否处理:</span>
-            <a-checkbox
-              :checked="item.isDone"
-              @change="() => toggelCheckbox(item.id)"
-              class="checkbox"
-            >
-            </a-checkbox>
+            <div v-show="switchAreaType === 'DothigsList'">
+              <Validate v-if="areaType === 'pos'"></Validate>
+            </div>
+            <div>
+              <span class="listStyle">是否已处理:</span>
+              <a-checkbox
+                :checked="item.isDone"
+                @change="() => toggelCheckbox(item.id)"
+                class="checkbox"
+              >
+              </a-checkbox>
+            </div>
+          </a-list-item>
+          <div class="confirm" v-show="switchAreaType === 'DothigsList'">
+            <Validate v-if="areaType === 'confirm'"></Validate>
+          </div>
+        </a-list>
+        <!-- 处理列表部分状态显示情况 -->
+        <a-list
+          v-show="type === 'checkbox'"
+          class="modalStyle"
+          size="small"
+          bordered
+        >
+          <a-list-item class="modifyState">
+            <span>确定要修改完成状态吗?</span>
           </a-list-item>
         </a-list>
       </a-modal>
@@ -123,7 +204,7 @@
 </template>
 <script>
 import { mapState, mapMutations, mapActions } from 'vuex'
-
+import Validate from './Validate'
 export default {
   data() {
     return {
@@ -132,11 +213,22 @@ export default {
       confirmLoading: false,
       modalData: [],
       type: '',
-      handleData: []
+      handleData: [],
+      checkedId: 0,
+      // 控制是否点ok,对状态进行更改
+      isOk: true
     }
   },
+  components: { Validate },
   computed: {
-    ...mapState(['dataView', 'dataObj'])
+    ...mapState([
+      'dataView',
+      'dataObj',
+      'areaType',
+      'switchAreaType',
+      'errMsgModify',
+      'errMsgModifyType'
+    ])
   },
   beforeMount() {},
 
@@ -146,34 +238,74 @@ export default {
       'toggelCheckbox',
       'modifyThings',
       'inputContent',
-      'delThings'
+      'delThings',
+      'totalCount',
+      'validate',
+      'confirmModifyData',
+      'initModalData'
     ]),
     ...mapActions([]),
     // 控制对话框的关闭
     showModal(id, type) {
-      this.modalData = this.dataView.filter(key => key.id === id)
-      this.type = type
-      if (type === 'modify') {
-        this.modifyThings(id)
-      }
       this.visible = true
+      this.type = type
+      switch (type) {
+        case 'checkbox':
+          return
+        case 'see':
+          this.modalData = this.dataView.filter(key => key.id === id)
+          break
+        case 'modify':
+          this.modalData = this.dataView.filter(key => key.id === id)
+          this.isOk = false
+          this.initModalData(this.modalData)
+      }
     },
     handleOk(e) {
       this.ModalText = 'The modal will be closed after one seconds'
       this.confirmLoading = true
-      setTimeout(() => {
-        this.visible = false
+      if (this.isOk) {
         this.confirmLoading = false
-      }, 1000)
+        this.visible = false
+        this.toggelCheckbox(this.checkedId)
+      } else {
+        this.confirmLoading = false
+        this.validate({
+          switchAreaType: 'DothigsList',
+          type: 'confirm'
+        })
+        if (this.errMsgModifyType === 1) {
+          setTimeout(() => {
+            this.visible = false
+            this.isOk = true
+          }, 1000)
+        } else {
+          this.confirmLoading = false
+        }
+      }
     },
     handleCancel(e) {
       console.log('Clicked cancel button')
       this.visible = false
+    },
+    handleCheckbox(id) {
+      this.showModal(id, 'checkbox')
+      this.checkedId = id
+    },
+    handleModify(targetDate) {
+      this.modifyThings(targetDate)
+    },
+    handleValidate(data) {
+      // console.log(data)
+      this.modifyThings(data)
+      this.validate(Object.assign(data, { switchAreaType: 'DothigsList' }))
     }
   },
-
   created() {
     this.initData()
+  },
+  updated() {
+    this.totalCount()
   }
 }
 </script>
@@ -205,5 +337,14 @@ export default {
   font-size: 15px;
   font-weight: 600;
   margin: 0 15px 0 0;
+}
+.modifyState {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}
+.confirm {
+  position: absolute;
+  right: 0;
 }
 </style>
