@@ -38,19 +38,19 @@ const vuex = new Vuex.Store({
       time: false,
       pos: false,
       content: false
-    }
+    },
+    // 标识列表显示的状态
+    handleViewType: 'all'
   },
   mutations: {
     // 初始化数据
     initData(state) {
-      // console.log(data)
       state.data = data
       state.dataView = state.data
     },
     // 初始化对话框对象数据
     initModalData(state, initModalData) {
       const { dataObj2 } = state
-      console.log(initModalData[0])
       Object.keys(initModalData[0]).forEach(key => {
         if (key !== 'id') {
           dataObj2[key] = initModalData[0][key]
@@ -137,8 +137,6 @@ const vuex = new Vuex.Store({
           })
           const { confirmAddDataFlag } = state
           const res = Object.values(confirmAddDataFlag).every(item => item)
-          // console.log(Object.keys(newDataObj))
-          // Object.keys(newDataObj)
           if (!res) {
             state.errMsg = '请完善信息'
             state.errMsgType = 'error'
@@ -150,7 +148,6 @@ const vuex = new Vuex.Store({
       } else if (switchAreaType === 'DothigsList') {
         // 修改页面弹出框验证
         const { dataObj2 } = state
-        console.log(dataObj2.title, 11111)
         switch (type) {
           case 'title':
             state.confirmAddDataFlag.title = false
@@ -201,7 +198,6 @@ const vuex = new Vuex.Store({
             break
           case 'confirm':
             var { confirmAddDataFlag } = state
-            console.log(confirmAddDataFlag)
             var res = Object.values(confirmAddDataFlag).every(item => item)
             if (!res) {
               state.errMsgModify = '请完善信息'
@@ -224,7 +220,7 @@ const vuex = new Vuex.Store({
         Object.keys(dataObj).forEach(key => {
           addThingsObj[key] = dataObj[key]
         })
-        Object.assign(addThingsObj, { id: state.data.length })
+        Object.assign(addThingsObj, { id: state.data.length, isDone: false })
         state.data = state.data.concat(addThingsObj)
         state.dataView = state.data
         Object.keys(dataObj).forEach(item => {
@@ -241,7 +237,6 @@ const vuex = new Vuex.Store({
     // 修改事情完成状态
     toggelCheckbox(state, id) {
       const { data } = state
-      // console.log(data)
       data.forEach(item => {
         if (item.id === id) {
           item.isDone = !item.isDone
@@ -259,11 +254,9 @@ const vuex = new Vuex.Store({
           item[type] = value
         }
       })
-      // console.log(dataView[0].title)
     },
     // 提交修改的内容
     confirmModifyData(state) {
-      // console.log(state.dataObj2)
       const res = Object.values(state.confirmAddDataFlag).every(item => item)
       if (res) {
         const { dataObj2, data } = state
@@ -292,6 +285,7 @@ const vuex = new Vuex.Store({
     },
     handleView(state, type) {
       var { data } = state
+      state.handleViewType = type
       switch (type) {
         case 'all':
           state.dataView = data

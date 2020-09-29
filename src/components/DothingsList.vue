@@ -28,7 +28,7 @@
           修改
         </a-button>
         <!-- 删除 -->
-        <a-button type="danger" size="small" @click="delThings(item.id)"
+        <a-button type="danger" size="small" @click="handleDel(item.id)"
           >删除</a-button
         >
       </a-list-item>
@@ -199,6 +199,12 @@
           </a-list-item>
         </a-list>
       </a-modal>
+      <div
+        v-if="dataView.length === 0 && handleViewType === 'all'"
+        class="none"
+      >
+        请添加事情
+      </div>
     </a-list>
   </div>
 </template>
@@ -216,7 +222,7 @@ export default {
       handleData: [],
       checkedId: 0,
       // 控制是否点ok,对状态进行更改
-      isOk: true
+      isOk: 'checkbox'
     }
   },
   components: { Validate },
@@ -227,7 +233,8 @@ export default {
       'areaType',
       'switchAreaType',
       'errMsgModify',
-      'errMsgModifyType'
+      'errMsgModifyType',
+      'handleViewType'
     ])
   },
   beforeMount() {},
@@ -242,7 +249,8 @@ export default {
       'totalCount',
       'validate',
       'confirmModifyData',
-      'initModalData'
+      'initModalData',
+      'handleView'
     ]),
     ...mapActions([]),
     // 控制对话框的关闭
@@ -251,37 +259,44 @@ export default {
       this.type = type
       switch (type) {
         case 'checkbox':
+          this.isOk = 'checkbox'
           return
         case 'see':
           this.modalData = this.dataView.filter(key => key.id === id)
+          this.isOk = 'see'
           break
         case 'modify':
           this.modalData = this.dataView.filter(key => key.id === id)
-          this.isOk = false
+          this.isOk = 'modify'
           this.initModalData(this.modalData)
       }
     },
     handleOk(e) {
       this.ModalText = 'The modal will be closed after one seconds'
       this.confirmLoading = true
-      if (this.isOk) {
+      if (this.isOk === 'checkbox') {
         this.confirmLoading = false
         this.visible = false
         this.toggelCheckbox(this.checkedId)
-      } else {
+      } else if (this.isOk === 'modify') {
         this.confirmLoading = false
         this.validate({
           switchAreaType: 'DothigsList',
           type: 'confirm'
         })
         if (this.errMsgModifyType === 1) {
+          this.confirmLoading = true
           setTimeout(() => {
+            this.confirmLoading = false
             this.visible = false
             this.isOk = true
           }, 1000)
         } else {
           this.confirmLoading = false
         }
+      } else if (this.isOk === 'see') {
+        this.visible = false
+        this.confirmLoading = false
       }
     },
     handleCancel(e) {
@@ -294,6 +309,10 @@ export default {
     },
     handleModify(targetDate) {
       this.modifyThings(targetDate)
+    },
+    handleDel(id) {
+      this.delThings(id)
+      this.handleView(this.handleViewType)
     },
     handleValidate(data) {
       // console.log(data)
@@ -346,5 +365,15 @@ export default {
 .confirm {
   position: absolute;
   right: 0;
+}
+.none {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  font-size: 24px;
+  width: 200px;
+  height: 100px;
+  transform: translateX(-100px);
+  text-align: center;
 }
 </style>
